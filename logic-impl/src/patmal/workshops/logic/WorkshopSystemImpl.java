@@ -17,32 +17,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * In-memory implementation of {@link WorkshopSystem}.
- *
- * <p><b>Identifiers.</b> Instructor and student ids are supplied by the
- * caller and must be unique within their own kind. Workshop and team ids are
- * assigned by this class as sequential integers starting from 1, in creation
- * order, each kind having its own counter. A counter is only advanced after
- * every validation for the corresponding create-operation has already
- * passed, so a rejected operation never consumes an id.</p>
- *
- * <p><b>Validation.</b> Every public mutator validates its arguments
- * completely before touching any internal state. This guarantees that a
- * rejected call (one that throws) leaves the system exactly as it was
- * before the call - nothing is "half applied".</p>
- *
- * <p><b>Unknown keys.</b> This implementation's chosen (and documented, as
- * required by the exercise) behaviour is: a lookup of a single object by an
- * id that does not exist returns {@code null}; a lookup that returns a
- * collection for an id that does not exist returns an empty list. No
- * exception is thrown for an unknown id.</p>
- *
- * <p><b>Returned lists.</b> Every method returning a {@link List} returns a
- * fresh copy that contains no duplicates and is never {@code null}, so that
- * callers can never corrupt this object's internal state by mutating the
- * list they got back.</p>
- */
+// Implementation notes:
+// - instructor/student ids come from the caller and must be unique.
+// - workshop/team ids are assigned here, starting from 1, and only once the
+//   corresponding create call has passed validation (so a rejected call
+//   never "uses up" an id).
+// - all create/associate calls validate everything first, then mutate state,
+//   so a failed call leaves the system exactly as it was.
+// - unknown ids: getX(id) returns null, getXsOfY(id) returns an empty list.
+// - every getter returns a copy of the internal list, never the list itself.
 public class WorkshopSystemImpl implements WorkshopSystem {
 
     private final Map<String, InstructorImpl> instructors = new LinkedHashMap<>();
@@ -50,19 +33,13 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     private final Map<Integer, WorkshopImpl> workshops = new LinkedHashMap<>();
     private final Map<Integer, TeamImpl> teams = new LinkedHashMap<>();
 
-    /** Next id to assign to a workshop; starts at 1 as required. */
     private int nextWorkshopId = 1;
-
-    /** Next id to assign to a team; starts at 1 as required. */
     private int nextTeamId = 1;
 
-    /** Public no-argument constructor, required so the tester can instantiate this class. */
     public WorkshopSystemImpl() {
     }
 
-    // ------------------------------------------------------------------
-    // Creation
-    // ------------------------------------------------------------------
+    // ---------- creation ----------
 
     @Override
     public Instructor createInstructor(String id, String name, String email) {
@@ -86,7 +63,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public Workshop createWorkshop(String name, String description) {
-        // Workshop creation cannot fail, so the id counter can be consumed directly.
+        // creating a workshop can't fail, so just grab the next id
         WorkshopImpl workshop = new WorkshopImpl(nextWorkshopId, name, description);
         nextWorkshopId++;
         workshops.put(workshop.getId(), workshop);
@@ -104,8 +81,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             throw new IllegalArgumentException("Unknown workshop: " + workshop);
         }
 
-        // Keep both sides of the relation consistent, including the case
-        // where the workshop already had a (different) instructor.
+        // if the workshop already had a different instructor, detach it first
         Instructor previousInstructor = workshopImpl.getInstructor();
         if (previousInstructor != null) {
             InstructorImpl previousImpl = instructors.get(previousInstructor.getId());
@@ -127,8 +103,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             throw new IllegalArgumentException("members must not be null");
         }
 
-        // Validate every member before mutating anything, so a rejected
-        // call leaves every student exactly as free/assigned as before.
+        // check all members first, before changing any state
         Set<String> seenIds = new HashSet<>();
         List<StudentImpl> resolvedMembers = new ArrayList<>();
         for (String studentId : members) {
@@ -145,8 +120,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             resolvedMembers.add(studentImpl);
         }
 
-        // All validations passed: only now is the id counter consumed and
-        // the state actually mutated.
+        // everything checked out, now actually create the team
         TeamImpl team = new TeamImpl(nextTeamId, name, workshopImpl);
         nextTeamId++;
         for (StudentImpl studentImpl : resolvedMembers) {
@@ -157,9 +131,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         return team;
     }
 
-    // ------------------------------------------------------------------
-    // Querying
-    // ------------------------------------------------------------------
+    // ---------- queries ----------
 
     @Override
     public List<Instructor> getInstructors() {

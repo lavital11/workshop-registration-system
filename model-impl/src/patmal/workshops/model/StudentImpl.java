@@ -7,23 +7,16 @@ import patmal.workshops.api.model.Team;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Concrete implementation of {@link Student}.
- *
- * <p>Most of a student's data is <em>derived</em> from the team the student
- * currently belongs to, rather than duplicated: this object only stores a
- * reference to its {@link Team} (or {@code null} for a free student) and
- * computes {@link #getTeamName()}, {@link #getInstructor()} and
- * {@link #getTeamMates()} on demand. This makes it impossible for the
- * derived data to drift out of sync with the team it came from.</p>
- */
+// Most of a student's info (team name, instructor, team mates) is derived
+// from the team they're in, so we only keep a reference to the team here
+// instead of storing that data separately.
 public class StudentImpl implements Student {
 
     private final String id;
     private final String name;
     private final String email;
 
-    /** null means the student is free (not in any team). */
+    // null means the student is free (no team)
     private Team team;
 
     public StudentImpl(String id, String name, String email) {
@@ -73,19 +66,12 @@ public class StudentImpl implements Student {
         return mates;
     }
 
-    /**
-     * Internal mutator used by the logic layer to assign (or clear) team
-     * membership. Not part of the public {@link Student} API.
-     */
+    // called from WorkshopSystemImpl to put the student in a team (or take them out)
     public void setTeam(Team team) {
         this.team = team;
     }
 
-    /**
-     * Internal accessor used by the logic layer to check whether this
-     * student is free, without needing extra bookkeeping of its own. Not
-     * part of the public {@link Student} API.
-     */
+    // used by WorkshopSystemImpl to check if this student is free
     public Team getTeam() {
         return team;
     }

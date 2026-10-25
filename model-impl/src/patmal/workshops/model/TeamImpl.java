@@ -7,16 +7,6 @@ import patmal.workshops.api.model.Workshop;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Concrete implementation of {@link Team}.
- *
- * <p>The id is assigned once, by the logic layer, as a sequential number
- * starting from 1, and never changes afterwards. The workshop is fixed at
- * creation time (a team always belongs to exactly one workshop). Members are
- * added through {@link #addStudent}, an internal mutator that is not part of
- * the public {@link Team} API - the logic layer validates every member
- * before adding any of them, so a team is only ever in a fully valid state.</p>
- */
 public class TeamImpl implements Team {
 
     private final Integer id;
@@ -42,7 +32,7 @@ public class TeamImpl implements Team {
 
     @Override
     public List<Student> getStudents() {
-        // Defensive copy: callers must not be able to corrupt our internal state.
+        // return a copy so callers can't mess with our internal list
         return new ArrayList<>(students);
     }
 
@@ -51,10 +41,7 @@ public class TeamImpl implements Team {
         return workshop;
     }
 
-    /**
-     * Internal mutator used by the logic layer while creating the team.
-     * Not part of the public {@link Team} API.
-     */
+    // called from WorkshopSystemImpl while building the team
     public void addStudent(Student student) {
         if (!students.contains(student)) {
             students.add(student);
