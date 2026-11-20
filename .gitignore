@@ -1,5 +1,6 @@
 bin/
 build/
 target/
+dependency-reduced-pom.xml
 .vscode/
 *.zip

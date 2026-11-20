@@ -20,5 +20,39 @@
             <groupId>patmal.workshops.student.impl</groupId>
             <artifactId>logic-impl</artifactId>
         </dependency>
+        <!-- the actual logging engine: only needed to run, not to compile -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
     </dependencies>
+
+    <build>
+        <!-- names the plain jar (and, after shading below, the uber jar too) workshop-cli.jar -->
+        <finalName>workshop-cli</finalName>
+        <plugins>
+            <!-- bundles app + logic-impl + model-impl + every runtime dependency into one
+                 jar, and writes Main-Class into the manifest so "java -jar" knows what to
+                 run. Bound to the package phase, so a normal "mvn install" produces it. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>patmal.workshops.student.impl.main.Main</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>
