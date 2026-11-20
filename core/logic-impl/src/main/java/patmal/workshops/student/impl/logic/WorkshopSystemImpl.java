@@ -1,92 +1,73 @@
 package patmal.workshops.student.impl.logic;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import patmal.workshops.api.logic.WorkshopSystem;
 import patmal.workshops.api.model.Instructor;
 import patmal.workshops.api.model.Student;
 import patmal.workshops.api.model.Team;
 import patmal.workshops.api.model.Workshop;
 import patmal.workshops.student.impl.model.InstructorImpl;
-import patmal.workshops.student.impl.model.StudentImpl;
-import patmal.workshops.student.impl.model.TeamImpl;
 import patmal.workshops.student.impl.model.WorkshopImpl;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-
+// Thin delegator (section 3.2's recommendation): all the storage and the
+// per-entity rules live in the 4 manager classes below. This class is left
+// with only the operations that coordinate between two managers at once
+// (associating a workshop with an instructor, and the two "students of X"
+// queries that cross the team/workshop/instructor relationship).
 public class WorkshopSystemImpl implements WorkshopSystem {
 
-    private final Map<String, InstructorImpl> instructors = new LinkedHashMap<>();
-    private final Map<String, StudentImpl> students = new LinkedHashMap<>();
-    private final Map<Integer, WorkshopImpl> workshops = new LinkedHashMap<>();
-    private final Map<Integer, TeamImpl> teams = new LinkedHashMap<>();
+    private static final Logger LOGGER = LogManager.getLogger(WorkshopSystemImpl.class);
 
-    private int nextWorkshopId = 1;
-    private int nextTeamId = 1;
+    private final InstructorManager instructorManager = new InstructorManager();
+    private final StudentManager studentManager = new StudentManager();
+    private final WorkshopManager workshopManager = new WorkshopManager();
+    private final TeamManager teamManager = new TeamManager(studentManager);
 
     public WorkshopSystemImpl() {
     }
 
-
     @Override
     public Instructor createInstructor(String id, String name, String email) {
-        if (id == null) {
-            throw new IllegalArgumentException("Instructor id must not be null.");
-        }
-        if (instructors.containsKey(id)) {
-            throw new IllegalArgumentException(
-                    "An instructor with id '" + id + "' already exists.");
-        }
-        InstructorImpl instructor = new InstructorImpl(id, name, email);
-        instructors.put(id, instructor);
-        return instructor;
+        return instructorManager.create(id, name, email);
     }
 
     @Override
     public Student createStudent(String id, String name, String email) {
-        if (id == null) {
-            throw new IllegalArgumentException("Student id must not be null.");
-        }
-        if (students.containsKey(id)) {
-            throw new IllegalArgumentException("A student with id '" + id + "' already exists.");
-        }
-        StudentImpl student = new StudentImpl(id, name, email);
-        students.put(id, student);
-        return student;
+        return studentManager.create(id, name, email);
     }
 
     @Override
     public Workshop createWorkshop(String name, String description) {
-        // creating a workshop can't fail, so just grab the next id
-        WorkshopImpl workshop = new WorkshopImpl(nextWorkshopId, name, description);
-        nextWorkshopId++;
-        workshops.put(workshop.getId(), workshop);
-        return workshop;
+        return workshopManager.create(name, description);
     }
 
     @Override
     public void associateWorkshopWithInstructor(Instructor instructor, Workshop workshop) {
         InstructorImpl instructorImpl = instructor == null
-                ? null : instructors.get(instructor.getId());
+                ? null : instructorManager.get(instructor.getId());
         WorkshopImpl workshopImpl = workshop == null
-                ? null : workshops.get(workshop.getId());
+                ? null : workshopManager.get(workshop.getId());
         if (instructorImpl == null) {
+            LOGGER.warn("Rejected association: unknown instructor {}.", instructor);
             throw new IllegalArgumentException("Unknown instructor: " + instructor);
         }
         if (workshopImpl == null) {
+            LOGGER.warn("Rejected association: unknown workshop {}.", workshop);
             throw new IllegalArgumentException("Unknown workshop: " + workshop);
         }
 
         // if the workshop already had a different instructor, detach it first
         Instructor previousInstructor = workshopImpl.getInstructor();
         if (previousInstructor != null) {
-            InstructorImpl previousImpl = instructors.get(previousInstructor.getId());
+            InstructorImpl previousImpl = instructorManager.get(previousInstructor.getId());
             if (previousImpl != null) {
                 previousImpl.removeWorkshop(workshopImpl);
             }
@@ -97,103 +78,64 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public Team createTeam(String name, Workshop workshop, List<String> members) {
-        WorkshopImpl workshopImpl = workshop == null ? null : workshops.get(workshop.getId());
+        WorkshopImpl workshopImpl = workshop == null ? null : workshopManager.get(workshop.getId());
         if (workshopImpl == null) {
+            LOGGER.warn("Rejected team creation: unknown workshop {}.", workshop);
             throw new IllegalArgumentException("Unknown workshop: " + workshop);
         }
-        if (members == null) {
-            throw new IllegalArgumentException("members must not be null");
-        }
-        if (members.isEmpty()) {
-            throw new IllegalArgumentException("A team must have at least one student member.");
-        }
-
-        // check all members first, before changing any state
-        Set<String> seenIds = new HashSet<>();
-        List<StudentImpl> resolvedMembers = new ArrayList<>();
-        for (String studentId : members) {
-            if (!seenIds.add(studentId)) {
-                throw new IllegalArgumentException(
-                        "Student listed twice in the same team: " + studentId);
-            }
-            StudentImpl studentImpl = students.get(studentId);
-            if (studentImpl == null) {
-                throw new IllegalArgumentException("Unknown student id: " + studentId);
-            }
-            if (studentImpl.getTeam() != null) {
-                throw new IllegalArgumentException(
-                        "Student '" + studentId + "' is already in another team.");
-            }
-            resolvedMembers.add(studentImpl);
-        }
-
-        // everything checked out, now actually create the team
-        TeamImpl team = new TeamImpl(nextTeamId, name, workshopImpl);
-        nextTeamId++;
-        for (StudentImpl studentImpl : resolvedMembers) {
-            team.addStudent(studentImpl);
-            studentImpl.setTeam(team);
-        }
-        teams.put(team.getId(), team);
-        return team;
+        return teamManager.create(name, workshopImpl, members);
     }
 
     // ---------- queries ----------
 
     @Override
     public List<Instructor> getInstructors() {
-        return new ArrayList<>(instructors.values());
+        return instructorManager.getAll();
     }
 
     @Override
     public Instructor getInstructor(String id) {
-        return instructors.get(id);
+        return instructorManager.get(id);
     }
 
     @Override
     public List<Student> getStudents() {
-        return new ArrayList<>(students.values());
+        return studentManager.getAll();
     }
 
     @Override
     public Student getStudent(String id) {
-        return students.get(id);
+        return studentManager.get(id);
     }
 
     @Override
     public List<Workshop> getWorkshops() {
-        return new ArrayList<>(workshops.values());
+        return workshopManager.getAll();
     }
 
     @Override
     public Workshop getWorkshop(Integer id) {
-        return workshops.get(id);
+        return workshopManager.get(id);
     }
 
     @Override
     public List<Team> getTeams() {
-        return new ArrayList<>(teams.values());
+        return teamManager.getAll();
     }
 
     @Override
     public Team getTeam(Integer id) {
-        return teams.get(id);
+        return teamManager.get(id);
     }
 
     @Override
     public List<Student> getFreeStudents() {
-        List<Student> free = new ArrayList<>();
-        for (StudentImpl student : students.values()) {
-            if (student.getTeam() == null) {
-                free.add(student);
-            }
-        }
-        return free;
+        return studentManager.getFree();
     }
 
     @Override
     public List<Student> getStudentsOfInstructor(String instructorId) {
-        InstructorImpl instructor = instructors.get(instructorId);
+        Instructor instructor = instructorManager.get(instructorId);
         if (instructor == null) {
             return new ArrayList<>();
         }
@@ -204,7 +146,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         }
 
         Set<Student> result = new LinkedHashSet<>();
-        for (TeamImpl team : teams.values()) {
+        for (Team team : teamManager.getAll()) {
             Workshop teamWorkshop = team.getWorkshop();
             if (teamWorkshop != null && workshopIds.contains(teamWorkshop.getId())) {
                 result.addAll(team.getStudents());
@@ -215,13 +157,13 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public List<Student> getStudentsOfWorkshop(Integer workshopId) {
-        WorkshopImpl workshop = workshopId == null ? null : workshops.get(workshopId);
+        Workshop workshop = workshopManager.get(workshopId);
         if (workshop == null) {
             return new ArrayList<>();
         }
 
         Set<Student> result = new LinkedHashSet<>();
-        for (TeamImpl team : teams.values()) {
+        for (Team team : teamManager.getAll()) {
             Workshop teamWorkshop = team.getWorkshop();
             if (teamWorkshop != null && workshopId.equals(teamWorkshop.getId())) {
                 result.addAll(team.getStudents());
@@ -230,7 +172,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         return new ArrayList<>(result);
     }
 
-    // ---------- JSON export (API 2.0) ----------
+    // ---------- JSON export (API 2.0, section 5.1) ----------
     // TODO (Phase D): implement per section 5.1.
 
     @Override
