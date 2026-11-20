@@ -44,7 +44,8 @@ public final class TeamImpl implements Team {
         return workshop;
     }
 
-    // called from WorkshopSystemImpl while building the team
+    // Internal: intended to be called only by WorkshopSystemImpl; not part of the public
+    // model contract. Used while building the team.
     public void addStudent(Student student) {
         students.add(student);
     }

@@ -40,7 +40,8 @@ public final class WorkshopImpl implements Workshop {
         return instructor;
     }
 
-    // called from WorkshopSystemImpl to keep the instructor/workshop link in sync
+    // Internal: intended to be called only by WorkshopSystemImpl; not part of the public
+    // model contract. Keeps the instructor/workshop link in sync.
     public void setInstructor(Instructor instructor) {
         this.instructor = instructor;
     }

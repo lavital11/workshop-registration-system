@@ -35,8 +35,12 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public Instructor createInstructor(String id, String name, String email) {
-        if (id == null || instructors.containsKey(id)) {
-            throw new IllegalArgumentException("An instructor with id '" + id + "' already exists (or id is null).");
+        if (id == null) {
+            throw new IllegalArgumentException("Instructor id must not be null.");
+        }
+        if (instructors.containsKey(id)) {
+            throw new IllegalArgumentException(
+                    "An instructor with id '" + id + "' already exists.");
         }
         InstructorImpl instructor = new InstructorImpl(id, name, email);
         instructors.put(id, instructor);
@@ -45,8 +49,11 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public Student createStudent(String id, String name, String email) {
-        if (id == null || students.containsKey(id)) {
-            throw new IllegalArgumentException("A student with id '" + id + "' already exists (or id is null).");
+        if (id == null) {
+            throw new IllegalArgumentException("Student id must not be null.");
+        }
+        if (students.containsKey(id)) {
+            throw new IllegalArgumentException("A student with id '" + id + "' already exists.");
         }
         StudentImpl student = new StudentImpl(id, name, email);
         students.put(id, student);
@@ -64,8 +71,10 @@ public class WorkshopSystemImpl implements WorkshopSystem {
 
     @Override
     public void associateWorkshopWithInstructor(Instructor instructor, Workshop workshop) {
-        InstructorImpl instructorImpl = instructor == null ? null : instructors.get(instructor.getId());
-        WorkshopImpl workshopImpl = workshop == null ? null : workshops.get(workshop.getId());
+        InstructorImpl instructorImpl = instructor == null
+                ? null : instructors.get(instructor.getId());
+        WorkshopImpl workshopImpl = workshop == null
+                ? null : workshops.get(workshop.getId());
         if (instructorImpl == null) {
             throw new IllegalArgumentException("Unknown instructor: " + instructor);
         }
@@ -103,14 +112,16 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         List<StudentImpl> resolvedMembers = new ArrayList<>();
         for (String studentId : members) {
             if (!seenIds.add(studentId)) {
-                throw new IllegalArgumentException("Student listed twice in the same team: " + studentId);
+                throw new IllegalArgumentException(
+                        "Student listed twice in the same team: " + studentId);
             }
             StudentImpl studentImpl = students.get(studentId);
             if (studentImpl == null) {
                 throw new IllegalArgumentException("Unknown student id: " + studentId);
             }
             if (studentImpl.getTeam() != null) {
-                throw new IllegalArgumentException("Student '" + studentId + "' is already in another team.");
+                throw new IllegalArgumentException(
+                        "Student '" + studentId + "' is already in another team.");
             }
             resolvedMembers.add(studentImpl);
         }
@@ -187,8 +198,8 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         }
 
         Set<Integer> workshopIds = new HashSet<>();
-        for (Workshop w : instructor.getWorkshops()) {
-            workshopIds.add(w.getId());
+        for (Workshop workshop : instructor.getWorkshops()) {
+            workshopIds.add(workshop.getId());
         }
 
         Set<Student> result = new LinkedHashSet<>();

@@ -67,7 +67,8 @@ public final class StudentImpl implements Student {
         return mates;
     }
 
-    // called from WorkshopSystemImpl to put the student in a team (or take them out)
+    // Internal: intended to be called only by WorkshopSystemImpl; not part of the public
+    // model contract. Puts the student in a team, or takes them out (null).
     public void setTeam(Team team) {
         this.team = team;
     }

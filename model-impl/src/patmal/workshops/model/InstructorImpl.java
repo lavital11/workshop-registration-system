@@ -45,12 +45,14 @@ public final class InstructorImpl implements Instructor {
         return new ArrayList<>(workshops);
     }
 
-    // called from WorkshopSystemImpl when a workshop gets associated with this instructor
+    // Internal: intended to be called only by WorkshopSystemImpl; not part of the public
+    // model contract. Called when a workshop gets associated with this instructor.
     public void addWorkshop(Workshop workshop) {
         workshops.add(workshop);
     }
 
-    // called from WorkshopSystemImpl if a workshop is re-assigned to a different instructor
+    // Internal: intended to be called only by WorkshopSystemImpl; not part of the public
+    // model contract. Called if a workshop is re-assigned to a different instructor.
     public void removeWorkshop(Workshop workshop) {
         workshops.remove(workshop);
     }
