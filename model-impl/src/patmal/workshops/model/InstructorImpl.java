@@ -4,8 +4,10 @@ import patmal.workshops.api.model.Instructor;
 import patmal.workshops.api.model.Workshop;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public final class InstructorImpl implements Instructor {
 
@@ -14,7 +16,7 @@ public final class InstructorImpl implements Instructor {
     private final String email;
 
     // workshops this instructor teaches
-    private final List<Workshop> workshops = new ArrayList<>();
+    private final Set<Workshop> workshops = new LinkedHashSet<>();
 
     public InstructorImpl(String id, String name, String email) {
         this.id = id;
@@ -45,9 +47,7 @@ public final class InstructorImpl implements Instructor {
 
     // called from WorkshopSystemImpl when a workshop gets associated with this instructor
     public void addWorkshop(Workshop workshop) {
-        if (!workshops.contains(workshop)) {
-            workshops.add(workshop);
-        }
+        workshops.add(workshop);
     }
 
     // called from WorkshopSystemImpl if a workshop is re-assigned to a different instructor

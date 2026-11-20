@@ -13,19 +13,12 @@ import patmal.workshops.model.WorkshopImpl;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-// Implementation notes:
-// - instructor/student ids come from the caller and must be unique.
-// - workshop/team ids are assigned here, starting from 1, and only once the
-//   corresponding create call has passed validation (so a rejected call
-//   never "uses up" an id).
-// - all create/associate calls validate everything first, then mutate state,
-//   so a failed call leaves the system exactly as it was.
-// - unknown ids: getX(id) returns null, getXsOfY(id) returns an empty list.
-// - every getter returns a copy of the internal list, never the list itself.
+
 public class WorkshopSystemImpl implements WorkshopSystem {
 
     private final Map<String, InstructorImpl> instructors = new LinkedHashMap<>();
@@ -39,7 +32,6 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     public WorkshopSystemImpl() {
     }
 
-    // ---------- creation ----------
 
     @Override
     public Instructor createInstructor(String id, String name, String email) {
@@ -196,18 +188,14 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             workshopIds.add(w.getId());
         }
 
-        List<Student> result = new ArrayList<>();
+        Set<Student> result = new LinkedHashSet<>();
         for (TeamImpl team : teams.values()) {
             Workshop teamWorkshop = team.getWorkshop();
             if (teamWorkshop != null && workshopIds.contains(teamWorkshop.getId())) {
-                for (Student s : team.getStudents()) {
-                    if (!result.contains(s)) {
-                        result.add(s);
-                    }
-                }
+                result.addAll(team.getStudents());
             }
         }
-        return result;
+        return new ArrayList<>(result);
     }
 
     @Override
@@ -217,17 +205,13 @@ public class WorkshopSystemImpl implements WorkshopSystem {
             return new ArrayList<>();
         }
 
-        List<Student> result = new ArrayList<>();
+        Set<Student> result = new LinkedHashSet<>();
         for (TeamImpl team : teams.values()) {
             Workshop teamWorkshop = team.getWorkshop();
             if (teamWorkshop != null && workshopId.equals(teamWorkshop.getId())) {
-                for (Student s : team.getStudents()) {
-                    if (!result.contains(s)) {
-                        result.add(s);
-                    }
-                }
+                result.addAll(team.getStudents());
             }
         }
-        return result;
+        return new ArrayList<>(result);
     }
 }

@@ -5,15 +5,17 @@ import patmal.workshops.api.model.Team;
 import patmal.workshops.api.model.Workshop;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public final class TeamImpl implements Team {
 
     private final Integer id;
     private final String name;
     private final Workshop workshop;
-    private final List<Student> students = new ArrayList<>();
+    private final Set<Student> students = new LinkedHashSet<>();
 
     public TeamImpl(Integer id, String name, Workshop workshop) {
         this.id = id;
@@ -44,9 +46,7 @@ public final class TeamImpl implements Team {
 
     // called from WorkshopSystemImpl while building the team
     public void addStudent(Student student) {
-        if (!students.contains(student)) {
-            students.add(student);
-        }
+        students.add(student);
     }
 
     @Override
