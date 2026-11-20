@@ -30,6 +30,7 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     private final StudentManager studentManager = new StudentManager();
     private final WorkshopManager workshopManager = new WorkshopManager();
     private final TeamManager teamManager = new TeamManager(studentManager);
+    private final JsonExporter jsonExporter = new JsonExporter();
 
     public WorkshopSystemImpl() {
     }
@@ -173,20 +174,21 @@ public class WorkshopSystemImpl implements WorkshopSystem {
     }
 
     // ---------- JSON export (API 2.0, section 5.1) ----------
-    // TODO (Phase D): implement per section 5.1.
 
     @Override
     public void exportInstructorsDataToJson(File targetFileName) {
-        throw new UnsupportedOperationException("not yet implemented");
+        jsonExporter.exportInstructors(instructorManager.getAll(), teamManager.getAll(),
+                targetFileName);
     }
 
     @Override
     public void exportStudentsDataToJson(File targetFileName) {
-        throw new UnsupportedOperationException("not yet implemented");
+        jsonExporter.exportStudents(studentManager.getAll(), teamManager.getAll(),
+                targetFileName);
     }
 
     @Override
     public void exportTeamsDataToJson(File targetFileName) {
-        throw new UnsupportedOperationException("not yet implemented");
+        jsonExporter.exportTeams(teamManager.getAll(), targetFileName);
     }
 }
