@@ -94,6 +94,9 @@ public class WorkshopSystemImpl implements WorkshopSystem {
         if (members == null) {
             throw new IllegalArgumentException("members must not be null");
         }
+        if (members.isEmpty()) {
+            throw new IllegalArgumentException("A team must have at least one student member.");
+        }
 
         // check all members first, before changing any state
         Set<String> seenIds = new HashSet<>();
