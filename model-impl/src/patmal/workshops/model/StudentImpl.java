@@ -6,11 +6,12 @@ import patmal.workshops.api.model.Team;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 // Most of a student's info (team name, instructor, team mates) is derived
 // from the team they're in, so we only keep a reference to the team here
 // instead of storing that data separately.
-public class StudentImpl implements Student {
+public final class StudentImpl implements Student {
 
     private final String id;
     private final String name;
@@ -74,6 +75,16 @@ public class StudentImpl implements Student {
     // used by WorkshopSystemImpl to check if this student is free
     public Team getTeam() {
         return team;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof StudentImpl other && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     @Override

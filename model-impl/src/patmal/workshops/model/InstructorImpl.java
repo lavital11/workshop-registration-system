@@ -5,8 +5,9 @@ import patmal.workshops.api.model.Workshop;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class InstructorImpl implements Instructor {
+public final class InstructorImpl implements Instructor {
 
     private final String id;
     private final String name;
@@ -52,6 +53,16 @@ public class InstructorImpl implements Instructor {
     // called from WorkshopSystemImpl if a workshop is re-assigned to a different instructor
     public void removeWorkshop(Workshop workshop) {
         workshops.remove(workshop);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof InstructorImpl other && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     @Override
