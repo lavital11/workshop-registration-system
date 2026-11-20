@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>patmal.workshops.student.impl</groupId>
+    <artifactId>root</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <!-- Aggregator: one "mvn install" here builds core (and everything under it) and app,
+         in the right order. root is also the parent of both, so they inherit the settings
+         below. -->
+    <modules>
+        <module>core</module>
+        <module>app</module>
+    </modules>
+
+    <properties>
+        <!-- The API jars were built with Java 25; the whole project targets the same level. -->
+        <java.version>25</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Every version used anywhere in this project is declared here, exactly once. -->
+        <api.version>2.0</api.version>
+        <junit.version>6.1.3</junit.version>
+
+        <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.6.1</maven-surefire-plugin.version>
+    </properties>
+
+    <!-- dependencyManagement only pins versions/scopes; it does not add anything to a child
+         by itself. A child still has to list the dependency, but then without a version. -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- API 2.0 jars, installed locally in Phase A (section 3.3) -->
+            <dependency>
+                <groupId>patmal.workshops</groupId>
+                <artifactId>model</artifactId>
+                <version>${api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>patmal.workshops</groupId>
+                <artifactId>logic</artifactId>
+                <version>${api.version}</version>
+            </dependency>
+
+            <!-- our own modules, referenced from each other with project.version -->
+            <dependency>
+                <groupId>patmal.workshops.student.impl</groupId>
+                <artifactId>model-impl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>patmal.workshops.student.impl</groupId>
+                <artifactId>logic-impl</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- pluginManagement: configure a plugin's version once here; a child activates it
+         (without repeating the version) only where it is actually needed. -->
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven-compiler-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
