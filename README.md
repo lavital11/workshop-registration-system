@@ -30,5 +30,8 @@ mvn clean install
 `app/target/workshop-cli.jar`, which can be run with:
 
 ```
-java -jar app/target/workshop-cli.jar
+java -jar app/target/workshop-cli.jar app/src/main/resources/students.csv
 ```
+
+(the demo students are loaded from that CSV file via `importStudentDataFromFile`,
+section 4.4/5.1/8.1).

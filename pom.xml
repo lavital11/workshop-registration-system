@@ -29,6 +29,7 @@
         <log4j.version>2.26.1</log4j.version>
         <commons-validator.version>1.11.0</commons-validator.version>
         <jackson.version>2.23.0</jackson.version>
+        <commons-csv.version>1.14.1</commons-csv.version>
 
         <maven-compiler-plugin.version>3.16.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.6.1</maven-surefire-plugin.version>
@@ -96,6 +97,13 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-databind</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+
+            <!-- CSV import (bonus, section 4.4 / 5.1) -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-csv</artifactId>
+                <version>${commons-csv.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
