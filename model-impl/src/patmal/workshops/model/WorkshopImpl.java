@@ -3,7 +3,9 @@ package patmal.workshops.model;
 import patmal.workshops.api.model.Instructor;
 import patmal.workshops.api.model.Workshop;
 
-public class WorkshopImpl implements Workshop {
+import java.util.Objects;
+
+public final class WorkshopImpl implements Workshop {
 
     private final Integer id;
     private final String name;
@@ -41,6 +43,16 @@ public class WorkshopImpl implements Workshop {
     // called from WorkshopSystemImpl to keep the instructor/workshop link in sync
     public void setInstructor(Instructor instructor) {
         this.instructor = instructor;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof WorkshopImpl other && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     @Override

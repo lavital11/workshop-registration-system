@@ -6,8 +6,9 @@ import patmal.workshops.api.model.Workshop;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class TeamImpl implements Team {
+public final class TeamImpl implements Team {
 
     private final Integer id;
     private final String name;
@@ -46,6 +47,16 @@ public class TeamImpl implements Team {
         if (!students.contains(student)) {
             students.add(student);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof TeamImpl other && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     @Override
